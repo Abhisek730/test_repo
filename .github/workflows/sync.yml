@@ -1,4 +1,4 @@
-name: Sync with GitLab
+name: Sync GitHub to GitLab
 
 on:
   push:
@@ -12,7 +12,17 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      - name: Sync with GitLab
+      - name: Set up Git configuration
+        run: |
+          git config user.name "Your abhisek730"
+          git config user.email "abhi.ag.kas@gmail.com"
+
+      - name: Add GitLab remote
         run: |
           git remote add gitlab https://oauth2:glpat-wPvGW8AndrDwcwKAoc9P@gitlab.com/abhishek73025/test_repo.git
-          git push gitlab main
+
+      - name: Pull changes from GitLab
+        run: git pull gitlab main --rebase  # Pulls the latest changes from GitLab to avoid conflicts
+
+      - name: Push changes to GitLab
+        run: git push gitlab main  # Pushes to GitLab's main branch
