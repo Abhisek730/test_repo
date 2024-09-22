@@ -29,16 +29,18 @@ jobs:
         run: |
           git fetch gitlab main
           git checkout main
-          git rebase gitlab/main  # Rebase GitHub's main onto GitLab's main
+          git rebase gitlab/main || true  # Continue even if there's a conflict
 
-      # Step 5: Handle conflicts (if any)
-      - name: Handle merge conflicts (auto-resolve)
+      # Step 5: Automatically resolve conflicts (if any)
+      - name: Resolve merge conflicts (use GitHub version)
         run: |
-          git checkout --theirs README.md  # Use GitHub's version for README conflicts
-          git add README.md || true  # Only if README.md has conflicts
-          git rebase --continue || true  # If rebase fails, continue if possible
+          if git ls-files -u | grep README.md; then
+            git checkout --ours README.md  # Resolve conflict in favor of GitHub
+            git add README.md
+            git rebase --continue
+          fi
 
       # Step 6: Push changes to GitLab
       - name: Push changes to GitLab
         run: |
-          git push gitlab main  # Push changes to GitLab after rebase
+          git push gitlab main
