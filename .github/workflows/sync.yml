@@ -24,15 +24,21 @@ jobs:
         run: |
           git remote add gitlab https://oauth2:glpat-wPvGW8AndrDwcwKAoc9P@gitlab.com/abhishek73025/test_repo.git
 
-      # Step 4: Pull changes from GitLab with conflict resolution
-      - name: Pull changes from GitLab with rebase (auto-resolve conflicts)
+      # Step 4: Fetch latest changes from GitLab and rebase
+      - name: Fetch and rebase GitLab main branch
         run: |
-          git fetch gitlab
-          git pull gitlab main --rebase || git rebase --abort  # Abort rebase if it fails
-          git checkout --theirs README.md  # Auto-select GitHub's version in case of README conflict
-          git add README.md || true  # Ignore errors if no conflict in README.md
-          git rebase --continue || true  # Continue or ignore if no rebase needed
+          git fetch gitlab main
+          git checkout main
+          git rebase gitlab/main  # Rebase GitHub's main onto GitLab's main
 
-      # Step 5: Push changes to GitLab
+      # Step 5: Handle conflicts (if any)
+      - name: Handle merge conflicts (auto-resolve)
+        run: |
+          git checkout --theirs README.md  # Use GitHub's version for README conflicts
+          git add README.md || true  # Only if README.md has conflicts
+          git rebase --continue || true  # If rebase fails, continue if possible
+
+      # Step 6: Push changes to GitLab
       - name: Push changes to GitLab
-        run: git push gitlab main  # Pushes to GitLab's main branch
+        run: |
+          git push gitlab main  # Push changes to GitLab after rebase
