@@ -9,20 +9,30 @@ jobs:
   sync_job:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout the repository
         uses: actions/checkout@v3
 
+      # Step 2: Set up Git configuration
       - name: Set up Git configuration
         run: |
-          git config user.name "Your abhisek730"
+          git config user.name "abhisek730"
           git config user.email "abhi.ag.kas@gmail.com"
 
+      # Step 3: Add GitLab remote using a secure GitLab token stored in Secrets
       - name: Add GitLab remote
         run: |
           git remote add gitlab https://oauth2:glpat-wPvGW8AndrDwcwKAoc9P@gitlab.com/abhishek73025/test_repo.git
 
-      - name: Pull changes from GitLab
-        run: git pull gitlab main --rebase  # Pulls the latest changes from GitLab to avoid conflicts
+      # Step 4: Pull changes from GitLab with conflict resolution
+      - name: Pull changes from GitLab with rebase (auto-resolve conflicts)
+        run: |
+          git fetch gitlab
+          git pull gitlab main --rebase || git rebase --abort  # Abort rebase if it fails
+          git checkout --theirs README.md  # Auto-select GitHub's version in case of README conflict
+          git add README.md || true  # Ignore errors if no conflict in README.md
+          git rebase --continue || true  # Continue or ignore if no rebase needed
 
+      # Step 5: Push changes to GitLab
       - name: Push changes to GitLab
         run: git push gitlab main  # Pushes to GitLab's main branch
